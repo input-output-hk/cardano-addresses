@@ -16,7 +16,7 @@ import Prelude hiding
     ( mod )
 
 import Cardano.Address.Derivation
-    ( DerivationScheme (..), deriveXPrv, deriveXPub, xprvToBytes, xpubToBytes )
+    ( DerivationScheme (..), Index(..), deriveXPrv, deriveXPub, xprvToBytes, xpubToBytes )
 import Codec.Binary.Encoding
     ( AbstractEncoding (..) )
 import Control.Monad
@@ -58,7 +58,7 @@ run Child{path} = do
             let ixs = castDerivationPath path
             case foldM (deriveXPub DerivationScheme2) xpub ixs of
                 Just child ->
-                    (,xpubToBytes child) <$> childHrpFor (fromEnum <$> ixs) hrp
+                    (,xpubToBytes child) <$> childHrpFor (getIndex <$> ixs) hrp
                 Nothing ->
                     fail
                         "Couldn't derive child key. If you're trying to derive \
@@ -70,7 +70,7 @@ run Child{path} = do
                     then DerivationScheme1
                     else DerivationScheme2
             let Identity child = foldM (\k -> pure . deriveXPrv scheme k) xprv ixs
-            (,xprvToBytes child) <$> childHrpFor (fromEnum <$> ixs) hrp
+            (,xprvToBytes child) <$> childHrpFor (getIndex <$> ixs) hrp
 
     hPutBytes stdout child (EBech32 hrp)
   where

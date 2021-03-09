@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 {-# OPTIONS_HADDOCK prune #-}
 
@@ -15,7 +16,11 @@ module Cardano.Address.Derivation
 
     -- * Key Derivation
     -- ** Types
-      Index
+      Index (getIndex)
+    , hardenedIndex
+    , softIndex
+    , wholeDomainIndex
+    , castWholeDomainIndex
     , Depth (..)
     , DerivationType (..)
 
@@ -321,6 +326,7 @@ newtype Index (derivationType :: DerivationType) (depth :: Depth) = Index
 
 instance NFData (Index derivationType depth)
 
+
 instance Bounded (Index 'Hardened depth) where
     minBound = Index 0x80000000
     maxBound = Index maxBound
@@ -333,29 +339,25 @@ instance Bounded (Index 'WholeDomain depth) where
     minBound = Index minBound
     maxBound = Index maxBound
 
-instance Enum (Index 'Hardened depth) where
-    fromEnum (Index ix) = fromIntegral ix
-    toEnum ix
-        | Index (fromIntegral ix) < minBound @(Index 'Hardened _) =
-            error "Index@Hardened.toEnum: bad argument"
-        | otherwise =
-            Index (fromIntegral ix)
+softIndex :: Word32 -> Maybe (Index 'Soft depth)
+softIndex = rangedIndex
 
-instance Enum (Index 'Soft depth) where
-    fromEnum (Index ix) = fromIntegral ix
-    toEnum ix
-        | Index (fromIntegral ix) > maxBound @(Index 'Soft _) =
-            error "Index@Soft.toEnum: bad argument"
-        | otherwise =
-            Index (fromIntegral ix)
+hardenedIndex :: Word32 -> Maybe (Index 'Hardened depth)
+hardenedIndex = rangedIndex
 
-instance Enum (Index 'WholeDomain depth) where
-    fromEnum (Index ix) = fromIntegral ix
-    toEnum ix
-        | Index (fromIntegral ix) > maxBound @(Index 'WholeDomain _) =
-            error "Index@WholeDomain.toEnum: bad argument"
-        | otherwise =
-            Index (fromIntegral ix)
+rangedIndex :: forall ix ty depth .
+             (ix ~ Index ty depth, Bounded ix)
+            => Word32 -> Maybe ix
+rangedIndex ix
+    | ix >= getIndex (minBound @ix) &&
+      ix <= getIndex (maxBound @ix) = Just (Index ix)
+    | otherwise = Nothing
+
+wholeDomainIndex :: Word32 -> Index 'WholeDomain depth
+wholeDomainIndex ix = Index ix
+
+castWholeDomainIndex :: Index ty depth0 -> Index 'WholeDomain depth1
+castWholeDomainIndex (Index ix) = Index ix
 
 instance Buildable (Index derivationType depth) where
     build (Index ix) = fromString (show ix)

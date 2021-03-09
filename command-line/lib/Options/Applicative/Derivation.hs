@@ -38,7 +38,12 @@ module Options.Applicative.Derivation
 import Prelude
 
 import Cardano.Address.Derivation
-    ( DerivationType (..), Index, XPub, xpubFromBytes )
+    ( DerivationType (..)
+    , Index
+    , wholeDomainIndex
+    , XPub
+    , xpubFromBytes
+    )
 import Codec.Binary.Bech32
     ( HumanReadablePart, humanReadablePartToText )
 import Codec.Binary.Encoding
@@ -93,7 +98,7 @@ derivationPathToString (DerivationPath xs) =
     intercalate "/" $ map derivationIndexToString xs
 
 castDerivationPath :: DerivationPath -> [Index 'WholeDomain depth]
-castDerivationPath (DerivationPath xs) = toEnum . fromEnum <$> xs
+castDerivationPath (DerivationPath xs) = map (wholeDomainIndex . getDerivationIndex) xs
 
 derivationPathArg :: Parser DerivationPath
 derivationPathArg = argument (eitherReader derivationPathFromString) $ mempty
@@ -107,7 +112,7 @@ derivationPathArg = argument (eitherReader derivationPathFromString) $ mempty
 -- Derivation Index
 --
 
-newtype DerivationIndex = DerivationIndex Word32
+newtype DerivationIndex = DerivationIndex { getDerivationIndex :: Word32 }
     deriving stock   (Show, Eq)
     deriving newtype (Bounded, Enum, Ord)
 

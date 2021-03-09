@@ -35,6 +35,8 @@ import Cardano.Address.Derivation
     , GenMasterKey (..)
     , HardDerivation (..)
     , Index
+    , hardenedIndex
+    , softIndex
     , SoftDerivation (..)
     , XPrv
     , XPub
@@ -1097,31 +1099,31 @@ testVectors TestVector{..} = it (show $ T.unpack <$> mnemonic) $ do
     rootXPrv' `shouldBe` rootXPrv
 
     let (Right hrp) = Bech32.humanReadablePartFromText "acct_xprv"
-    let accIx0 = toEnum 0x80000000
+    let Just accIx0 = hardenedIndex 0x80000000
     let acctK0 = deriveAccountPrivateKey rootK accIx0
     let accXPrv0' = bech32With hrp $ getExtendedKeyAddr acctK0
     accXPrv0' `shouldBe` accXPrv0
-    let accIx1 = toEnum 0x80000001
+    let Just accIx1 = hardenedIndex 0x80000001
     let acctK1 = deriveAccountPrivateKey rootK accIx1
     let accXPrv1' = bech32With hrp $ getExtendedKeyAddr acctK1
     accXPrv1' `shouldBe` accXPrv1
 
     let (Right hrpPrv) = Bech32.humanReadablePartFromText "addr_xprv"
     let (Right hrpPub) = Bech32.humanReadablePartFromText "addr_xpub"
-    let addIx0 = toEnum 0x00000000
+    let Just addIx0 = softIndex 0x00000000
     let addrK0prv = deriveAddressPrivateKey acctK0 UTxOExternal addIx0
     let addrXPrv0' = bech32With hrpPrv $ getExtendedKeyAddr addrK0prv
     addrXPrv0' `shouldBe` addrXPrv0
     let addrXPub0' = bech32With hrpPub $ getPublicKeyAddr $ toXPub <$> addrK0prv
     addrXPub0' `shouldBe` addrXPub0
 
-    let addIx1 = toEnum 0x00000001
+    let Just addIx1 = softIndex 0x00000001
     let addrK1prv = deriveAddressPrivateKey acctK0 UTxOExternal addIx1
     let addrXPrv1' = bech32With hrpPrv $ getExtendedKeyAddr addrK1prv
     addrXPrv1' `shouldBe` addrXPrv1
     let addrXPub1' = bech32With hrpPub $ getPublicKeyAddr $ toXPub <$> addrK1prv
     addrXPub1' `shouldBe` addrXPub1
-    let addIx1442 = toEnum 0x000005a2
+    let Just addIx1442 = softIndex 0x000005a2
     let addrK1442prv = deriveAddressPrivateKey acctK0 UTxOExternal addIx1442
     let addrXPrv1442' = bech32With hrpPrv $ getExtendedKeyAddr addrK1442prv
     addrXPrv1442' `shouldBe` addrXPrv1442
