@@ -26,7 +26,10 @@ import Cardano.Address.Derivation
     , DerivationType (..)
     , GenMasterKey (..)
     , HardDerivation (..)
-    , Index
+    , Index (getIndex)
+    , softIndex
+    , hardenedIndex
+    , wholeDomainIndex
     , XPrv
     , XPub
     , generate
@@ -60,12 +63,14 @@ import Data.ByteString
     ( ByteString )
 import Data.Function
     ( on )
+import Data.Maybe
+    ( fromMaybe )
 import Data.Proxy
     ( Proxy (..) )
 import Data.Text
     ( Text )
 import Data.Word
-    ( Word64 )
+    ( Word32, Word64 )
 import GHC.Stack
     ( HasCallStack )
 import GHC.TypeLits
@@ -115,23 +120,31 @@ instance
 
 instance Arbitrary (Index 'Soft 'PaymentK) where
     shrink _ = []
-    arbitrary = arbitraryBoundedEnum
+    arbitrary = let err = error "Arbitrary (Index 'Soft 'PaymentK)"
+                in  arbitraryIndex (fromMaybe err . softIndex)
 
 instance Arbitrary (Index 'Hardened 'AccountK) where
     shrink _ = []
-    arbitrary = arbitraryBoundedEnum
+    arbitrary = let err = error "Arbitrary (Index 'Hardened 'AccountK)"
+                in  arbitraryIndex (fromMaybe err . hardenedIndex)
 
 instance Arbitrary (Index 'Hardened 'PaymentK) where
     shrink _ = []
-    arbitrary = arbitraryBoundedEnum
+    arbitrary = let err = error "Arbitrary (Index 'Hardened 'PaymentK)"
+                in  arbitraryIndex (fromMaybe err . hardenedIndex)
 
 instance Arbitrary (Index 'WholeDomain 'PaymentK) where
     shrink _ = []
-    arbitrary = arbitraryBoundedEnum
+    arbitrary = arbitraryIndex wholeDomainIndex
 
 instance Arbitrary (Index 'WholeDomain 'AccountK) where
     shrink _ = []
-    arbitrary = arbitraryBoundedEnum
+    arbitrary = arbitraryIndex wholeDomainIndex
+
+arbitraryIndex :: forall ix ty depth . (Bounded ix, ix ~ Index ty depth)
+               => (Word32 -> ix) -> Gen ix
+arbitraryIndex f = f <$> choose ( getIndex (minBound @ix)
+                                , getIndex (maxBound @ix))
 
 instance Arbitrary SomeMnemonic where
     arbitrary = SomeMnemonic <$> genMnemonic @12

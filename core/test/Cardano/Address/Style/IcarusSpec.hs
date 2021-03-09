@@ -24,7 +24,9 @@ import Cardano.Address.Derivation
     , DerivationType (..)
     , GenMasterKey (..)
     , HardDerivation (..)
-    , Index
+    , Index ( getIndex )
+    , softIndex
+    , hardenedIndex
     , SoftDerivation (..)
     , XPrv
     , toXPub
@@ -51,7 +53,7 @@ import Data.Text
 import Test.Arbitrary
     ( unsafeMkSomeMnemonicFromEntropy )
 import Test.Hspec
-    ( Spec, describe, it, shouldBe )
+    ( Spec, describe, it, shouldBe, runIO )
 import Test.QuickCheck
     ( Arbitrary (..), Property, arbitraryBoundedEnum, property, (===) )
 
@@ -68,17 +70,19 @@ spec = do
     describe "Golden Tests - Icarus' style addresses" $ do
         let seed0 = unsafeMkSomeMnemonicFromEntropy (Proxy @15)
                 "4\175\242L\184\243\191 \169]\171 \207\r\v\233\NUL~&\ETB"
+            justSoftIx ix = let Just i = softIndex ix     in i
+            justHardIx ix = let Just i = hardenedIndex ix in i
 
         goldenAddressGeneration $ GoldenAddressGeneration
-            seed0 (toEnum 0x80000000) UTxOExternal (toEnum 0x00000000)
+            seed0 (justHardIx 0x80000000) UTxOExternal (justSoftIx 0x00000000)
             "Ae2tdPwUPEZGQVrA6qKreDzdtYxcWMMrpTFYCpFcuJfhJBEfoeiuW4MtaXZ"
 
         goldenAddressGeneration $ GoldenAddressGeneration
-            seed0 (toEnum 0x80000000) UTxOExternal (toEnum 0x0000000E)
+            seed0 (justHardIx 0x80000000) UTxOExternal (justSoftIx 0x0000000E)
             "Ae2tdPwUPEZDLWQQEBR1UW7HeXJVaqUnuw8DUFu52TDWCJbxbkCyQYyxckP"
 
         goldenAddressGeneration $ GoldenAddressGeneration
-            seed0 (toEnum 0x8000000E) UTxOInternal (toEnum 0x0000002A)
+            seed0 (justHardIx 0x8000000E) UTxOInternal (justSoftIx 0x0000002A)
             "Ae2tdPwUPEZFRbyhz3cpfC2CumGzNkFBN2L42rcUc2yjQpEkxDbkPodpMAi"
 
         let (Right seed1) = mkSomeMnemonic @'[12]
@@ -87,15 +91,15 @@ spec = do
               ]
 
         goldenAddressGeneration $ GoldenAddressGeneration
-            seed1 (toEnum 0x80000000) UTxOExternal (toEnum 0x00000000)
+            seed1 (justHardIx 0x80000000) UTxOExternal (justSoftIx 0x00000000)
             "Ae2tdPwUPEYz6ExfbWubiXPB6daUuhJxikMEb4eXRp5oKZBKZwrbJ2k7EZe"
 
         goldenAddressGeneration $ GoldenAddressGeneration
-            seed1 (toEnum 0x80000000) UTxOExternal (toEnum 0x00000001)
+            seed1 (justHardIx 0x80000000) UTxOExternal (justSoftIx 0x00000001)
             "Ae2tdPwUPEZCJUCuVgnysar8ZJeyKuhjXU35VNgKMMTcXWmS9zzYycmwKa4"
 
         goldenAddressGeneration $ GoldenAddressGeneration
-            seed1 (toEnum 0x80000000) UTxOExternal (toEnum 0x00000002)
+            seed1 (justHardIx 0x80000000) UTxOExternal (justSoftIx 0x00000002)
             "Ae2tdPwUPEZFJtMH1m5HvsaQZrmgLcVcyuk5TxYtdRHZFo8yV7yEnnJyqTs"
 
     describe "Hardware Ledger" $ do
@@ -235,11 +239,11 @@ goldenAddressGeneration test = it title $ do
     -- e.g. m/.../0'/0/0
     fmtPath p3 p4 p5 = mconcat
         [ "m/.../"
-        , show (fromEnum p3 - fromEnum (minBound @(Index 'Hardened _)))
+        , show (getIndex p3 - getIndex (minBound @(Index 'Hardened _)))
         , "'/"
         , show (fromEnum p4)
         , "/"
-        , show (fromEnum p5)
+        , show (getIndex p5)
         ]
 
 goldenHardwareLedger
@@ -260,7 +264,8 @@ goldenHardwareLedger sentence addrs =
         let deriveAddr = deriveAddressPrivateKey acctXPrv UTxOExternal
 
         forM_ (zip [0..] addrs) $ \(ix, addr) -> do
-            let addrXPrv = deriveAddr (toEnum ix)
+            let Just softIx = softIndex ix
+                addrXPrv = deriveAddr softIx
             base58 (paymentAddress icarusMainnet $ toXPub <$> addrXPrv)
                 `shouldBe` addr
   where

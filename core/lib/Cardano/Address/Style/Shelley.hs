@@ -90,6 +90,8 @@ import Cardano.Address.Derivation
     , DerivationScheme (..)
     , DerivationType (..)
     , Index
+    , hardenedIndex
+    , softIndex
     , XPrv
     , XPub
     , credentialHashSize
@@ -212,6 +214,8 @@ instance NFData Role
 -- Not deriving 'Enum' because this could have a dramatic impact if we were
 -- to assign the wrong index to the corresponding constructor (by swapping
 -- around the constructor above for instance).
+
+-- XXX we should probably remove this instance
 instance Enum Role where
     toEnum = \case
         0 -> UTxOExternal
@@ -226,6 +230,13 @@ instance Enum Role where
         Stake -> 2
         MultisigForPayment -> 3
         MultisigForDelegation -> 4
+
+roleIndex :: Role -> Word32
+roleIndex UTxOExternal = 0
+roleIndex UTxOInternal = 1
+roleIndex Stake = 2
+roleIndex MultisigForPayment = 3
+roleIndex MultisigForDelegation = 4
 
 --
 -- Key Derivation
@@ -273,10 +284,8 @@ instance Internal.HardDerivation Shelley where
 
     deriveAccountPrivateKey (Shelley rootXPrv) accIx =
         let
-            purposeIx =
-                toEnum @(Index 'Hardened _) $ fromEnum purposeIndex
-            coinTypeIx =
-                toEnum @(Index 'Hardened _) $ fromEnum coinTypeIndex
+            Just purposeIx = hardenedIndex purposeIndex
+            Just coinTypeIx = hardenedIndex coinTypeIndex
             purposeXPrv = -- lvl1 derivation; hardened derivation of purpose'
                 deriveXPrv DerivationScheme2 rootXPrv purposeIx
             coinTypeXPrv = -- lvl2 derivation; hardened derivation of coin_type'
@@ -288,7 +297,7 @@ instance Internal.HardDerivation Shelley where
 
     deriveAddressPrivateKey (Shelley accXPrv) role addrIx =
         let
-            roleCode = toEnum @(Index 'Soft _) $ fromEnum role
+            Just roleCode = softIndex (roleIndex role)
             changeXPrv = -- lvl4 derivation; soft derivation of change chain
                 deriveXPrv DerivationScheme2 accXPrv roleCode
             addrXPrv = -- lvl5 derivation; soft derivation of address index
@@ -299,7 +308,7 @@ instance Internal.HardDerivation Shelley where
 instance Internal.SoftDerivation Shelley where
     deriveAddressPublicKey (Shelley accXPub) role addrIx =
         fromMaybe errWrongIndex $ do
-            let roleCode = toEnum @(Index 'Soft _) $ fromEnum role
+            roleCode <- softIndex (roleIndex role)
             changeXPub <- -- lvl4 derivation in bip44 is derivation of change chain
                 deriveXPub DerivationScheme2 accXPub roleCode
             addrXPub <- -- lvl5 derivation in bip44 is derivation of address chain
