@@ -99,7 +99,7 @@ import Cardano.Address.Derivation
     , deriveXPub
     , generateNew
     , hashCredential
-    , xpubPublicKey, xprvToBytes, xpubToBytes
+    , xpubPublicKey, xprvToBytes, xpubToBytes, xpubFromBytes, xprvFromBytes
     )
 import Cardano.Address.Script
     ( KeyHash (..), ScriptHash (..) )
@@ -175,7 +175,7 @@ import Cardano.Codec.Bech32.Prefixes
       stake_xvk )
 import Data.Coerce (coerce)
 import qualified Cardano.Address.Script as Script
-import qualified Cardano.Crypto.Wallet as CC
+import Data.Either.Extra (maybeToEither)
 
 -- $overview
 --
@@ -218,11 +218,11 @@ instance ToBech32 (Shelley 'RootK XPub) where
 instance FromBech32 (Shelley 'RootK XPrv) where
     fromBech32 b = do
         dec <- fromBech32With root_xsk id b
-        Shelley <$> CC.xprv dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'RootK XPub) where
     fromBech32 b = do
         dec <- fromBech32With root_xvk id b
-        Shelley <$> CC.xpub dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'AccountK XPrv) where
     bech32 (Shelley k) = bech32With acct_xsk $ xprvToBytes k
@@ -231,11 +231,11 @@ instance ToBech32 (Shelley 'AccountK XPub) where
 instance FromBech32 (Shelley 'AccountK XPrv) where
     fromBech32 b = do
         dec <- fromBech32With acct_xsk id b
-        Shelley <$> CC.xprv dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'AccountK XPub) where
     fromBech32 b = do
         dec <- fromBech32With acct_xvk id b
-        Shelley <$> CC.xpub dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'PaymentK XPrv) where
     bech32 (Shelley k) = bech32With addr_xsk $ xprvToBytes k
@@ -244,11 +244,11 @@ instance ToBech32 (Shelley 'PaymentK XPub) where
 instance FromBech32 (Shelley 'PaymentK XPrv) where
     fromBech32 b = do
         dec <- fromBech32With addr_xsk id b
-        Shelley <$> CC.xprv dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'PaymentK XPub) where
     fromBech32 b = do
         dec <- fromBech32With addr_xvk id b
-        Shelley <$> CC.xpub dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'DelegationK XPrv) where
     bech32 (Shelley k) = bech32With stake_xsk $ xprvToBytes k
@@ -257,11 +257,11 @@ instance ToBech32 (Shelley 'DelegationK XPub) where
 instance FromBech32 (Shelley 'DelegationK XPrv) where
     fromBech32 b = do
         dec <- fromBech32With stake_xsk id b
-        Shelley <$> CC.xprv dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'DelegationK XPub) where
     fromBech32 b = do
         dec <- fromBech32With stake_xvk id b
-        Shelley <$> CC.xpub dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'ScriptK XPrv) where
     bech32 (Shelley k) = bech32With script_xsk $ xprvToBytes k
@@ -270,11 +270,11 @@ instance ToBech32 (Shelley 'ScriptK XPub) where
 instance FromBech32 (Shelley 'ScriptK XPrv) where
     fromBech32 b = do
         dec <- fromBech32With script_xsk id b
-        Shelley <$> CC.xprv dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'ScriptK XPub) where
     fromBech32 b = do
         dec <- fromBech32With script_xvk id b
-        Shelley <$> CC.xpub dec
+        Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 newtype WithoutChain key = WithoutChain key
 
