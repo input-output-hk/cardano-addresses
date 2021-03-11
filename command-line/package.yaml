@@ -67,6 +67,9 @@ executables:
     dependencies:
     - cardano-addresses-cli
     when:
+    - condition: impl(ghcjs) || os(ghcjs)
+      ghc-options:
+      - jsbits/cardano-crypto.js
     - condition: flag(release)
       ghc-options:
       - -Werror

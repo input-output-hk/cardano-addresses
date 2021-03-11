@@ -40,7 +40,7 @@ emcc -o crypto-cbits.js -s WASM=0 \
   ./cryptonite/cryptonite_chacha.c \
   ./cryptonite/cryptonite_poly1305.c
 
-google-closure-compiler --js=crypto-cbits.js --js_output_file=crypto-cbits.min.js
+closure-compiler --js=crypto-cbits.js --js_output_file=crypto-cbits.min.js
 
 cat crc32.js crypto-cbits.pre.js crypto-cbits.js crypto-cbits.post.js crypto-wrappers.js > cardano-crypto.js
 

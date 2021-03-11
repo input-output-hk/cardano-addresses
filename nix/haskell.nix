@@ -103,6 +103,18 @@ let
       ({pkgs, config, ... }: lib.mkIf pkgs.stdenv.hostPlatform.isGhcjs {
         packages.digest.components.library.libs = lib.mkForce [ pkgs.buildPackages.zlib ];
         packages.cardano-addresses-cli.components.library.build-tools = [ pkgs.buildPackages.buildPackages.gitMinimal ];
+        # Run the script to build the C sources from cryptonite and cardano-crypto
+        # and place the result in jsbits/cardano-crypto.js
+        packages.cardano-addresses-cli.components.exes.cardano-address.preConfigure = ''
+          script=$(mktemp -d)
+          cp -r ${../script}/* $script
+          ln -s ${pkgs.srcOnly {name = "cryptonite-src"; src = config.packages.cryptonite.src;}}/cbits $script/cryptonite
+          ln -s ${pkgs.srcOnly {name = "cardano-crypto-src"; src = config.packages.cardano-crypto.src;}}/cbits $script/cardano-crypto
+          patchShebangs $script/build.sh
+          (cd $script && PATH=${pkgs.buildPackages.emscripten}/bin:${pkgs.buildPackages.buildPackages.closurecompiler}/bin:$PATH ./build.sh || echo DOH)
+          mkdir -p jsbits
+          cp $script/cardano-crypto.js jsbits/cardano-crypto.js
+        '';
       })
     ];
   });
