@@ -16,7 +16,7 @@ import Prelude hiding
     ( mod )
 
 import Cardano.Address
-    ( bech32With, unsafeMkAddress )
+    ( unsafeMkAddress, Address (unAddress) )
 import Cardano.Address.Derivation
     ( Depth (..) )
 import Cardano.Address.Style.Shelley
@@ -36,6 +36,7 @@ import qualified Cardano.Address.Style.Shelley as Shelley
 import qualified Cardano.Codec.Bech32.Prefixes as CIP5
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Text.Encoding as T
+import Cardano.Codec.Bech32 (bech32With)
 
 newtype Cmd = Cmd
     { credential :: Credential 'DelegationK
@@ -77,7 +78,7 @@ run Cmd{credential} = do
         Left (ErrInvalidAddressType  msg) ->
             fail msg
         Right addr ->
-            B8.hPutStr stdout $ T.encodeUtf8 $ bech32With hrp addr
+           B8.hPutStr stdout $ T.encodeUtf8 $ bech32With hrp (unAddress addr)
   where
     allowedPrefixes =
         [ CIP5.addr

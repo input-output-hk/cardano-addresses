@@ -85,3 +85,4 @@ tests:
     - memory
     - QuickCheck
     - text
+    - extra

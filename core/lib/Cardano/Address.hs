@@ -23,9 +23,6 @@ module Cardano.Address
       -- * Conversion From / To Text
     , base58
     , fromBase58
-    , bech32
-    , bech32With
-    , fromBech32
 
       -- Internal / Network Discrimination
     , HasNetworkDiscriminant (..)
@@ -33,6 +30,8 @@ module Cardano.Address
     , NetworkTag (..)
     , invariantSize
     , invariantNetworkTag
+    , AddressVerificationKeyHash (..)
+    , StakeVerificationKeyHash (..)
     ) where
 
 import Prelude
@@ -41,8 +40,6 @@ import Cardano.Address.Derivation
     ( Depth (..), XPub )
 import Cardano.Codec.Cbor
     ( decodeAddress, deserialiseCbor )
-import Codec.Binary.Bech32
-    ( HumanReadablePart )
 import Codec.Binary.Encoding
     ( AbstractEncoding (..), encode )
 import Control.DeepSeq
@@ -64,10 +61,11 @@ import GHC.Stack
 import Numeric.Natural
     ( Natural )
 
-import qualified Cardano.Codec.Bech32.Prefixes as CIP5
 import qualified Codec.Binary.Encoding as E
 import qualified Data.ByteString as BS
 import qualified Data.Text.Encoding as T
+import Cardano.Codec.Bech32 (ToBech32 (..), bech32With, FromBech32(..), fromBech32With)
+import Cardano.Codec.Bech32.Prefixes (addr, addr_vkh, stake_vkh)
 
 -- | An 'Address' type representing 'Cardano' addresses. Internals are
 -- irrevelant to the user.
@@ -77,6 +75,10 @@ newtype Address = Address
     { unAddress :: ByteString
     } deriving stock (Generic, Show, Eq, Ord)
 instance NFData Address
+instance ToBech32 Address where
+    bech32 (Address k) = bech32With addr k
+instance FromBech32 Address where
+    fromBech32 = fromBech32With addr Address
 
 -- Unsafe constructor for easily lifting bytes inside an 'Address'.
 --
@@ -98,26 +100,6 @@ fromBase58 =
     deserialiseCbor (unsafeMkAddress <$> decodeAddress)
    <=<
     eitherToMaybe . E.fromBase58 . T.encodeUtf8
-
--- | Encode an 'Address' to bech32 'Text', using @addr@ as a human readable prefix.
---
--- @since 1.0.0
-bech32 :: Address -> Text
-bech32 = bech32With CIP5.addr
-
--- | Encode an 'Address' to bech32 'Text', using a specified human readable prefix.
---
--- @since 2.0.0
-bech32With :: HumanReadablePart -> Address -> Text
-bech32With hrp =
-    T.decodeUtf8 . encode (EBech32 hrp) . unAddress
-
--- | Decode a bech32-encoded  'Text' into an 'Address'
---
--- @since 1.0.0
-fromBech32 :: Text -> Maybe Address
-fromBech32 =
-    eitherToMaybe . fmap (unsafeMkAddress . snd) . E.fromBech32 (const id) . T.encodeUtf8
 
 -- | Encoding of addresses for certain key types and backend targets.
 --
@@ -237,3 +219,15 @@ invariantNetworkTag limit (NetworkTag num)
       ++ show num
       ++ ", but expected to be less than "
       ++ show limit
+
+newtype AddressVerificationKeyHash = AddressVerificationKeyHash { unAddressVerificationKeyHash :: ByteString }
+instance ToBech32 AddressVerificationKeyHash where
+    bech32 (AddressVerificationKeyHash kh) = bech32With addr_vkh kh
+instance FromBech32 AddressVerificationKeyHash where
+    fromBech32 = fromBech32With addr_vkh AddressVerificationKeyHash
+
+newtype StakeVerificationKeyHash = StakeVerificationKeyHash { unStakeVerificationKeyHash :: ByteString }
+instance ToBech32 StakeVerificationKeyHash where
+    bech32 (StakeVerificationKeyHash kh) = bech32With stake_vkh kh
+instance FromBech32 StakeVerificationKeyHash where
+    fromBech32 = fromBech32With stake_vkh StakeVerificationKeyHash

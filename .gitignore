@@ -26,6 +26,7 @@ cabal.project.local~
 *.tix
 *.lock
 hie.yaml
+.vscode
 
 ### Nix ###
 result*

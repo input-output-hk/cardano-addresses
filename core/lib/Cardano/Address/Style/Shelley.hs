@@ -19,6 +19,7 @@
 -- Copyright: © 2018-2020 IOHK
 -- License: Apache-2.0
 
+{-# LANGUAGE FlexibleInstances #-}
 module Cardano.Address.Style.Shelley
     ( -- $overview
 
@@ -28,6 +29,7 @@ module Cardano.Address.Style.Shelley
     , Role (..)
     , Credential (..)
     , CredentialType (..)
+    , WithoutChain(..)
 
       -- * Key Derivation
       -- $keyDerivation
@@ -83,7 +85,7 @@ import Cardano.Address
     , invariantNetworkTag
     , invariantSize
     , unAddress
-    , unsafeMkAddress
+    , unsafeMkAddress, AddressVerificationKeyHash(..), StakeVerificationKeyHash(..)
     )
 import Cardano.Address.Derivation
     ( Depth (..)
@@ -97,7 +99,7 @@ import Cardano.Address.Derivation
     , deriveXPub
     , generateNew
     , hashCredential
-    , xpubPublicKey
+    , xpubPublicKey, xprvToBytes, xpubToBytes
     )
 import Cardano.Address.Script
     ( KeyHash (..), ScriptHash (..) )
@@ -155,6 +157,25 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Cardano.Codec.Bech32 (bech32, ToBech32, bech32With, FromBech32(..), fromBech32With)
+import Cardano.Codec.Bech32.Prefixes
+    ( acct_vk,
+      acct_xsk,
+      acct_xvk,
+      addr_vk,
+      addr_xsk,
+      addr_xvk,
+      root_xsk,
+      root_xvk,
+      script_vk,
+      script_xsk,
+      script_xvk,
+      stake_vk,
+      stake_xsk,
+      stake_xvk )
+import Data.Coerce (coerce)
+import qualified Cardano.Address.Script as Script
+import qualified Cardano.Crypto.Wallet as CC
 
 -- $overview
 --
@@ -189,6 +210,95 @@ newtype Shelley (depth :: Depth) key = Shelley
 
 deriving instance (Functor (Shelley depth))
 instance (NFData key) => NFData (Shelley depth key)
+
+instance ToBech32 (Shelley 'RootK XPrv) where
+    bech32 (Shelley k) = bech32With root_xsk $ xprvToBytes k
+instance ToBech32 (Shelley 'RootK XPub) where
+    bech32 (Shelley k) = bech32With root_xvk $ xpubToBytes k
+instance FromBech32 (Shelley 'RootK XPrv) where
+    fromBech32 b = do
+        dec <- fromBech32With root_xsk id b
+        Shelley <$> CC.xprv dec
+instance FromBech32 (Shelley 'RootK XPub) where
+    fromBech32 b = do
+        dec <- fromBech32With root_xvk id b
+        Shelley <$> CC.xpub dec
+
+instance ToBech32 (Shelley 'AccountK XPrv) where
+    bech32 (Shelley k) = bech32With acct_xsk $ xprvToBytes k
+instance ToBech32 (Shelley 'AccountK XPub) where
+    bech32 (Shelley k) = bech32With acct_xvk $ xpubToBytes k
+instance FromBech32 (Shelley 'AccountK XPrv) where
+    fromBech32 b = do
+        dec <- fromBech32With acct_xsk id b
+        Shelley <$> CC.xprv dec
+instance FromBech32 (Shelley 'AccountK XPub) where
+    fromBech32 b = do
+        dec <- fromBech32With acct_xvk id b
+        Shelley <$> CC.xpub dec
+
+instance ToBech32 (Shelley 'PaymentK XPrv) where
+    bech32 (Shelley k) = bech32With addr_xsk $ xprvToBytes k
+instance ToBech32 (Shelley 'PaymentK XPub) where
+    bech32 (Shelley k) = bech32With addr_xvk $ xpubToBytes k
+instance FromBech32 (Shelley 'PaymentK XPrv) where
+    fromBech32 b = do
+        dec <- fromBech32With addr_xsk id b
+        Shelley <$> CC.xprv dec
+instance FromBech32 (Shelley 'PaymentK XPub) where
+    fromBech32 b = do
+        dec <- fromBech32With addr_xvk id b
+        Shelley <$> CC.xpub dec
+
+instance ToBech32 (Shelley 'DelegationK XPrv) where
+    bech32 (Shelley k) = bech32With stake_xsk $ xprvToBytes k
+instance ToBech32 (Shelley 'DelegationK XPub) where
+    bech32 (Shelley k) = bech32With stake_xvk $ xpubToBytes k
+instance FromBech32 (Shelley 'DelegationK XPrv) where
+    fromBech32 b = do
+        dec <- fromBech32With stake_xsk id b
+        Shelley <$> CC.xprv dec
+instance FromBech32 (Shelley 'DelegationK XPub) where
+    fromBech32 b = do
+        dec <- fromBech32With stake_xvk id b
+        Shelley <$> CC.xpub dec
+
+instance ToBech32 (Shelley 'ScriptK XPrv) where
+    bech32 (Shelley k) = bech32With script_xsk $ xprvToBytes k
+instance ToBech32 (Shelley 'ScriptK XPub) where
+    bech32 (Shelley k) = bech32With script_xvk $ xpubToBytes k
+instance FromBech32 (Shelley 'ScriptK XPrv) where
+    fromBech32 b = do
+        dec <- fromBech32With script_xsk id b
+        Shelley <$> CC.xprv dec
+instance FromBech32 (Shelley 'ScriptK XPub) where
+    fromBech32 b = do
+        dec <- fromBech32With script_xvk id b
+        Shelley <$> CC.xpub dec
+
+newtype WithoutChain key = WithoutChain key
+
+instance ToBech32 (WithoutChain (Shelley 'RootK XPub)) where
+    bech32 k = bech32With script_vk $ xpubPublicKey $ coerce k
+
+instance ToBech32 (WithoutChain (Shelley 'AccountK XPub)) where
+    bech32 k = bech32With acct_vk $ xpubPublicKey $ coerce k
+
+instance ToBech32 (WithoutChain (Shelley 'PaymentK XPub)) where
+    bech32 k = bech32With addr_vk $ xpubPublicKey $ coerce k
+
+instance ToBech32 (WithoutChain (Shelley 'DelegationK XPub)) where
+    bech32 k = bech32With stake_vk $ xpubPublicKey $ coerce k
+
+instance ToBech32 (WithoutChain (Shelley 'ScriptK XPub)) where
+    bech32 k = bech32With script_vk $ xpubPublicKey $ coerce k
+
+-- instance ToBech32 (WithoutChain (Shelley 'DelegationK XPrv)) where
+--     bech32 = undefined
+-- instance ToBech32 (WithoutChain (Shelley 'PaymentK XPrv)) where
+--     bech32 = undefined
+-- instance ToBech32 (WithoutChain (Shelley 'ScriptK XPrv)) where
+--     bech32 = undefined
 
 -- | Describe what the keys within an account are used for.
 --
@@ -553,6 +663,8 @@ inspectAddress mRootPub addr
             (fstByte, rest) = first BS.head $ BS.splitAt 1 bytes
             addrType = fstByte .&. 0b11110000
             network  = fstByte .&. 0b00001111
+            spendingKeyHash = AddressVerificationKeyHash (BS.take credentialHashSize rest)
+            stakeKeyHash = StakeVerificationKeyHash (BS.take credentialHashSize rest)
         in
             case addrType of
                -- 0000: base address: keyhash28,keyhash28
@@ -561,7 +673,9 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by value"
                         , "spending_key_hash" .= base16 (BS.take credentialHashSize rest)
+                        , "spending_key_hash_bech32" .= bech32 spendingKeyHash
                         , "stake_key_hash"    .= base16 (BS.drop credentialHashSize rest)
+                        , "stake_key_hash_bech32" .= bech32 stakeKeyHash
                         , "network_tag"       .= network
                         ]
                -- 0001: base address: scripthash32,keyhash28
@@ -570,7 +684,9 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by value"
                         , "script_hash"       .= base16 (BS.take credentialHashSize rest)
+                        , "script_hash_bech32".= KeyHash (BS.take credentialHashSize rest)
                         , "stake_key_hash"    .= base16 (BS.drop credentialHashSize rest)
+                        , "stake_key_hash_bech32" .= bech32 stakeKeyHash
                         , "network_tag"       .= network
                         ]
                -- 0010: base address: keyhash28,scripthash32
@@ -579,7 +695,9 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by value"
                         , "spending_key_hash" .= base16 (BS.take credentialHashSize rest)
+                        , "spending_key_hash_bech32" .= bech32 spendingKeyHash
                         , "stake_script_hash" .= base16 (BS.drop credentialHashSize rest)
+                        , "stake_script_hash_bech32" .= bech32 (KeyHash (BS.drop credentialHashSize rest))
                         , "network_tag"       .= network
                         ]
                -- 0011: base address: scripthash32,scripthash32
@@ -588,7 +706,9 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by value"
                         , "script_hash"       .= base16 (BS.take credentialHashSize rest)
+                        , "script_hash_bech32".= KeyHash (BS.take credentialHashSize rest)
                         , "stake_script_hash" .= base16 (BS.drop credentialHashSize rest)
+                        , "stake_script_hash_bech32" .= bech32 (KeyHash (BS.drop credentialHashSize rest))
                         , "network_tag"       .= network
                         ]
                -- 0100: pointer address: keyhash28, 3 variable length uint
@@ -600,6 +720,7 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by pointer"
                         , "spending_key_hash" .= base16 (BS.take credentialHashSize rest)
+                        , "spending_key_hash_bech32" .= bech32 spendingKeyHash
                         , "pointer"           .= ptrToJSON ptr
                         , "network_tag"       .= network
                         ]
@@ -612,6 +733,7 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by pointer"
                         , "script_hash"       .= base16 (BS.take credentialHashSize rest)
+                        , "script_hash_bech32" .= bech32 (Script.KeyHash (BS.take credentialHashSize rest))
                         , "pointer"           .= ptrToJSON ptr
                         , "network_tag"       .= network
                         ]
@@ -621,6 +743,7 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "none"
                         , "spending_key_hash" .= base16 (BS.take credentialHashSize rest)
+                        , "spending_key_hash_bech32" .= bech32 spendingKeyHash
                         , "network_tag"       .= network
                         ]
                -- 0111: enterprise address: scripthash32
@@ -629,6 +752,7 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "none"
                         , "script_hash"       .= base16 (BS.take credentialHashSize rest)
+                        , "script_hash_bech32" .= bech32 (Script.KeyHash (BS.take credentialHashSize rest))
                         , "network_tag"       .= network
                         ]
                -- 1000: byron address
@@ -640,6 +764,7 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by value"
                         , "stake_key_hash"    .= base16 (BS.take credentialHashSize rest)
+                        , "stake_key_hash_bech32" .= bech32 stakeKeyHash
                         , "network_tag"       .= network
                         ]
                -- 1111: reward account: scripthash32
@@ -648,6 +773,7 @@ inspectAddress mRootPub addr
                         [ "address_style"     .= Json.String "Shelley"
                         , "stake_reference"   .= Json.String "by value"
                         , "script_hash"       .= base16 (BS.take credentialHashSize rest)
+                        , "script_hash_bech32" .= bech32 (Script.KeyHash (BS.take credentialHashSize rest))
                         , "network_tag"       .= network
                         ]
                 _ -> throwM UnknownAddrType

@@ -108,6 +108,7 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
+import Cardano.Codec.Bech32 (ToBech32 (bech32), bech32With, FromBech32(..), fromBech32With)
 
 -- | A 'Script' type represents multi signature script. The script embodies conditions
 -- that need to be satisfied to make it valid.
@@ -216,6 +217,11 @@ scriptHashFromBytes bytes
 newtype KeyHash = KeyHash { unKeyHash :: ByteString }
     deriving (Generic, Show, Ord, Eq)
 instance NFData KeyHash
+instance ToBech32 KeyHash where
+    bech32 (KeyHash kh) = bech32With CIP5.script_vkh kh
+
+instance FromBech32 KeyHash where
+    fromBech32 b = fromBech32With CIP5.script_vkh KeyHash b
 
 -- | Construct an 'KeyHash' from raw 'ByteString' (28 bytes).
 --

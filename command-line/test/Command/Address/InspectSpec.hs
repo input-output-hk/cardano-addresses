@@ -48,9 +48,13 @@ spec = describeCmd [ "address", "inspect" ] $ do
     -- reward account: keyhash28
     specInspectAddress ["Shelley", "by value", "stake_key_hash"] []
         "stake1upshvetj09hxjcm9v9jxgunjv4ehxmr0d3hkcmmvdakx7mqcjv83c"
+    specInspectAddress ["Shelley", "by value", "stake_key_hash_bech32"] []
+        "stake1upshvetj09hxjcm9v9jxgunjv4ehxmr0d3hkcmmvdakx7mqcjv83c"
 
     -- reward account: scripthash28
     specInspectAddress ["Shelley", "by value", "script_hash"] []
+        "stake17pshvetj09hxjcm9v9jxgunjv4ehxmr0d3hkcmmvdakx7mq36s8xc"
+    specInspectAddress ["Shelley", "by value", "script_hash_bech32"] []
         "stake17pshvetj09hxjcm9v9jxgunjv4ehxmr0d3hkcmmvdakx7mq36s8xc"
 
     -- cardano-cli generated --testnet-magic 42 addresses
@@ -59,12 +63,16 @@ spec = describeCmd [ "address", "inspect" ] $ do
         \hmxqkgwy9ecn5carsv39frsgsq09u70wmqwhqjqcjqs"
     specInspectAddress ["Shelley", "by value", "stake_key_hash"] []
         "stake_test1uru9j7w96wmanqty8zzuuf6vw3cxgj53cygq8j708hds8tsntl0j7"
+    specInspectAddress ["Shelley", "by value", "stake_key_hash_bech32"] []
+        "stake_test1uru9j7w96wmanqty8zzuuf6vw3cxgj53cygq8j708hds8tsntl0j7"
 
     -- cardano-cli generated --mainnet addresses
     specInspectAddress ["Shelley", "by value", "stake_key_hash", "spending_key_hash"] []
         "addr1q9777p2w2hqa3cl0ah97pdwyavjnpf0ex3muvqgttavjxhku2rp98h9drzkdf\
         \va8ea775jszmd799k59aknpvqyn6wwqwll7uw"
     specInspectAddress ["Shelley", "by value", "stake_key_hash"] []
+        "stake1u8w9psjnmjk33tx5kwnu7l02fgpdklzjm2z7mfskqzfa88qsjpk8l"
+    specInspectAddress ["Shelley", "by value", "stake_key_hash_bech32"] []
         "stake1u8w9psjnmjk33tx5kwnu7l02fgpdklzjm2z7mfskqzfa88qsjpk8l"
 
     specInspectMalformed
