@@ -24,6 +24,8 @@ import Cardano.Address.Style.Byron
     ( Byron )
 import Cardano.Address.Style.Icarus
     ( Icarus )
+import Cardano.Codec.Bech32
+    ( FromBech32 (fromBech32), ToBech32 (bech32) )
 import Data.Function
     ( (&) )
 import Data.Text
@@ -36,10 +38,10 @@ import Test.Hspec.QuickCheck
     ( prop )
 import Test.QuickCheck
     ( Property, counterexample, label )
-import Cardano.Codec.Bech32 (ToBech32 (bech32),FromBech32 (fromBech32))
 
+import Data.Either.Extra
+    ( eitherToMaybe )
 import qualified Data.Text as T
-import Data.Either.Extra (eitherToMaybe)
 
 spec :: Spec
 spec = describe "Text Encoding Roundtrips" $ do

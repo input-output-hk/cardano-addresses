@@ -16,7 +16,7 @@ import Prelude hiding
     ( mod )
 
 import Cardano.Address
-    ( ChainPointer (..), unsafeMkAddress, Address (unAddress) )
+    ( Address (unAddress), ChainPointer (..), unsafeMkAddress )
 import Cardano.Address.Style.Shelley
     ( Credential (..), ErrExtendAddress (..) )
 import Numeric.Natural
@@ -43,10 +43,11 @@ import System.IO.Extra
     ( hGetBech32, progName )
 
 import qualified Cardano.Address.Style.Shelley as Shelley
+import Cardano.Codec.Bech32
+    ( bech32With )
 import qualified Cardano.Codec.Bech32.Prefixes as CIP5
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Text.Encoding as T
-import Cardano.Codec.Bech32 (bech32With)
 
 data Cmd = Cmd
     { slotNum :: Natural

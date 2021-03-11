@@ -54,7 +54,8 @@ import Cardano.Address.Style.Shelley
     , pointerAddress
     )
 
-import Cardano.Codec.Bech32 (bech32, FromBech32 (fromBech32))
+import Cardano.Codec.Bech32
+    ( FromBech32 (fromBech32), bech32 )
 import Cardano.Mnemonic
     ( SomeMnemonic, mkSomeMnemonic )
 import Codec.Binary.Encoding
@@ -92,9 +93,10 @@ import Test.QuickCheck
 import qualified Cardano.Address.Style.Shelley as Shelley
 import qualified Data.ByteArray as BA
 import qualified Data.ByteString as BS
+import Data.Either.Extra
+    ( eitherToMaybe )
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Data.Either.Extra (eitherToMaybe)
 
 spec :: Spec
 spec = do

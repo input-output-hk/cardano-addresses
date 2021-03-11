@@ -23,8 +23,9 @@ import Test.Hspec
 import Text.ParserCombinators.ReadP
     ( ReadP, readP_to_S )
 
+import Cardano.Codec.Bech32
+    ( fromBech32 )
 import qualified Data.Text as T
-import Cardano.Codec.Bech32 (fromBech32)
 
 spec :: Spec
 spec = do

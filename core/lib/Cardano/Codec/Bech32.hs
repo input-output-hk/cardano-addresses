@@ -2,13 +2,16 @@ module Cardano.Codec.Bech32 (ToBech32(..), FromBech32(..), bech32With,fromBech32
 
 import Prelude
 
-import Data.Text (Text)
-import Codec.Binary.Bech32 (HumanReadablePart, humanReadablePartToText)
-import Data.ByteString (ByteString)
-import qualified Data.Text.Encoding as T
+import Codec.Binary.Bech32
+    ( HumanReadablePart, humanReadablePartToText )
 import Codec.Binary.Encoding
     ( AbstractEncoding (..), encode )
 import qualified Codec.Binary.Encoding as E
+import Data.ByteString
+    ( ByteString )
+import Data.Text
+    ( Text )
+import qualified Data.Text.Encoding as T
 
 class ToBech32 a where
   bech32 :: a -> Text

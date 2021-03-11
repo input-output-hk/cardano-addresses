@@ -95,6 +95,8 @@ import GHC.Generics
 import Numeric.Natural
     ( Natural )
 
+import Cardano.Codec.Bech32
+    ( FromBech32 (..), ToBech32 (bech32), bech32With, fromBech32With )
 import qualified Cardano.Codec.Bech32.Prefixes as CIP5
 import qualified Cardano.Codec.Cbor as CBOR
 import qualified Codec.Binary.Bech32 as Bech32
@@ -108,7 +110,6 @@ import qualified Data.Set as Set
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Read as T
-import Cardano.Codec.Bech32 (ToBech32 (bech32), bech32With, FromBech32(..), fromBech32With)
 
 -- | A 'Script' type represents multi signature script. The script embodies conditions
 -- that need to be satisfied to make it valid.

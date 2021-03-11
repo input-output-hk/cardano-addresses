@@ -79,13 +79,15 @@ import Prelude
 import Cardano.Address
     ( Address
     , AddressDiscrimination (..)
+    , AddressVerificationKeyHash (..)
     , ChainPointer (..)
     , NetworkDiscriminant (..)
     , NetworkTag (..)
+    , StakeVerificationKeyHash (..)
     , invariantNetworkTag
     , invariantSize
     , unAddress
-    , unsafeMkAddress, AddressVerificationKeyHash(..), StakeVerificationKeyHash(..)
+    , unsafeMkAddress
     )
 import Cardano.Address.Derivation
     ( Depth (..)
@@ -99,7 +101,11 @@ import Cardano.Address.Derivation
     , deriveXPub
     , generateNew
     , hashCredential
-    , xpubPublicKey, xprvToBytes, xpubToBytes, xpubFromBytes, xprvFromBytes
+    , xprvFromBytes
+    , xprvToBytes
+    , xpubFromBytes
+    , xpubPublicKey
+    , xpubToBytes
     )
 import Cardano.Address.Script
     ( KeyHash (..), ScriptHash (..) )
@@ -149,33 +155,37 @@ import GHC.Generics
     ( Generic )
 
 import qualified Cardano.Address.Derivation as Internal
+import qualified Cardano.Address.Script as Script
 import qualified Cardano.Address.Style.Byron as Byron
 import qualified Cardano.Address.Style.Icarus as Icarus
+import Cardano.Codec.Bech32
+    ( FromBech32 (..), ToBech32, bech32, bech32With, fromBech32With )
+import Cardano.Codec.Bech32.Prefixes
+    ( acct_vk
+    , acct_xsk
+    , acct_xvk
+    , addr_vk
+    , addr_xsk
+    , addr_xvk
+    , root_xsk
+    , root_xvk
+    , script_vk
+    , script_xsk
+    , script_xvk
+    , stake_vk
+    , stake_xsk
+    , stake_xvk
+    )
 import qualified Data.Aeson as Json
 import qualified Data.ByteArray as BA
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BL
+import Data.Coerce
+    ( coerce )
+import Data.Either.Extra
+    ( maybeToEither )
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import Cardano.Codec.Bech32 (bech32, ToBech32, bech32With, FromBech32(..), fromBech32With)
-import Cardano.Codec.Bech32.Prefixes
-    ( acct_vk,
-      acct_xsk,
-      acct_xvk,
-      addr_vk,
-      addr_xsk,
-      addr_xvk,
-      root_xsk,
-      root_xvk,
-      script_vk,
-      script_xsk,
-      script_xvk,
-      stake_vk,
-      stake_xsk,
-      stake_xvk )
-import Data.Coerce (coerce)
-import qualified Cardano.Address.Script as Script
-import Data.Either.Extra (maybeToEither)
 
 -- $overview
 --

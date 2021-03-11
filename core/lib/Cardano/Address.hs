@@ -61,11 +61,13 @@ import GHC.Stack
 import Numeric.Natural
     ( Natural )
 
+import Cardano.Codec.Bech32
+    ( FromBech32 (..), ToBech32 (..), bech32With, fromBech32With )
+import Cardano.Codec.Bech32.Prefixes
+    ( addr, addr_vkh, stake_vkh )
 import qualified Codec.Binary.Encoding as E
 import qualified Data.ByteString as BS
 import qualified Data.Text.Encoding as T
-import Cardano.Codec.Bech32 (ToBech32 (..), bech32With, FromBech32(..), fromBech32With)
-import Cardano.Codec.Bech32.Prefixes (addr, addr_vkh, stake_vkh)
 
 -- | An 'Address' type representing 'Cardano' addresses. Internals are
 -- irrevelant to the user.
