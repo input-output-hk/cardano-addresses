@@ -160,22 +160,7 @@ import qualified Cardano.Address.Style.Byron as Byron
 import qualified Cardano.Address.Style.Icarus as Icarus
 import Cardano.Codec.Bech32
     ( FromBech32 (..), ToBech32, bech32, bech32With, fromBech32With )
-import Cardano.Codec.Bech32.Prefixes
-    ( acct_vk
-    , acct_xsk
-    , acct_xvk
-    , addr_vk
-    , addr_xsk
-    , addr_xvk
-    , root_xsk
-    , root_xvk
-    , script_vk
-    , script_xsk
-    , script_xvk
-    , stake_vk
-    , stake_xsk
-    , stake_xvk
-    )
+import qualified Cardano.Codec.Bech32.Prefixes as CIP5
 import qualified Data.Aeson as Json
 import qualified Data.ByteArray as BA
 import qualified Data.ByteString as BS
@@ -222,93 +207,86 @@ deriving instance (Functor (Shelley depth))
 instance (NFData key) => NFData (Shelley depth key)
 
 instance ToBech32 (Shelley 'RootK XPrv) where
-    bech32 (Shelley k) = bech32With root_xsk $ xprvToBytes k
+    bech32 (Shelley k) = bech32With CIP5.root_xsk $ xprvToBytes k
 instance ToBech32 (Shelley 'RootK XPub) where
-    bech32 (Shelley k) = bech32With root_xvk $ xpubToBytes k
+    bech32 (Shelley k) = bech32With CIP5.root_xvk $ xpubToBytes k
 instance FromBech32 (Shelley 'RootK XPrv) where
     fromBech32 b = do
-        dec <- fromBech32With root_xsk id b
+        dec <- fromBech32With CIP5.root_xsk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'RootK XPub) where
     fromBech32 b = do
-        dec <- fromBech32With root_xvk id b
+        dec <- fromBech32With CIP5.root_xvk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'AccountK XPrv) where
-    bech32 (Shelley k) = bech32With acct_xsk $ xprvToBytes k
+    bech32 (Shelley k) = bech32With CIP5.acct_xsk $ xprvToBytes k
 instance ToBech32 (Shelley 'AccountK XPub) where
-    bech32 (Shelley k) = bech32With acct_xvk $ xpubToBytes k
+    bech32 (Shelley k) = bech32With CIP5.acct_xvk $ xpubToBytes k
 instance FromBech32 (Shelley 'AccountK XPrv) where
     fromBech32 b = do
-        dec <- fromBech32With acct_xsk id b
+        dec <- fromBech32With CIP5.acct_xsk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'AccountK XPub) where
     fromBech32 b = do
-        dec <- fromBech32With acct_xvk id b
+        dec <- fromBech32With CIP5.acct_xvk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'PaymentK XPrv) where
-    bech32 (Shelley k) = bech32With addr_xsk $ xprvToBytes k
+    bech32 (Shelley k) = bech32With CIP5.addr_xsk $ xprvToBytes k
 instance ToBech32 (Shelley 'PaymentK XPub) where
-    bech32 (Shelley k) = bech32With addr_xvk $ xpubToBytes k
+    bech32 (Shelley k) = bech32With CIP5.addr_xvk $ xpubToBytes k
 instance FromBech32 (Shelley 'PaymentK XPrv) where
     fromBech32 b = do
-        dec <- fromBech32With addr_xsk id b
+        dec <- fromBech32With CIP5.addr_xsk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'PaymentK XPub) where
     fromBech32 b = do
-        dec <- fromBech32With addr_xvk id b
+        dec <- fromBech32With CIP5.addr_xvk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'DelegationK XPrv) where
-    bech32 (Shelley k) = bech32With stake_xsk $ xprvToBytes k
+    bech32 (Shelley k) = bech32With CIP5.stake_xsk $ xprvToBytes k
 instance ToBech32 (Shelley 'DelegationK XPub) where
-    bech32 (Shelley k) = bech32With stake_xvk $ xpubToBytes k
+    bech32 (Shelley k) = bech32With CIP5.stake_xvk $ xpubToBytes k
 instance FromBech32 (Shelley 'DelegationK XPrv) where
     fromBech32 b = do
-        dec <- fromBech32With stake_xsk id b
+        dec <- fromBech32With CIP5.stake_xsk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'DelegationK XPub) where
     fromBech32 b = do
-        dec <- fromBech32With stake_xvk id b
+        dec <- fromBech32With CIP5.stake_xvk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 instance ToBech32 (Shelley 'ScriptK XPrv) where
-    bech32 (Shelley k) = bech32With script_xsk $ xprvToBytes k
+    bech32 (Shelley k) = bech32With CIP5.script_xsk $ xprvToBytes k
 instance ToBech32 (Shelley 'ScriptK XPub) where
-    bech32 (Shelley k) = bech32With script_xvk $ xpubToBytes k
+    bech32 (Shelley k) = bech32With CIP5.script_xvk $ xpubToBytes k
 instance FromBech32 (Shelley 'ScriptK XPrv) where
     fromBech32 b = do
-        dec <- fromBech32With script_xsk id b
+        dec <- fromBech32With CIP5.script_xsk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xprvFromBytes dec)
 instance FromBech32 (Shelley 'ScriptK XPub) where
     fromBech32 b = do
-        dec <- fromBech32With script_xvk id b
+        dec <- fromBech32With CIP5.script_xvk id b
         Shelley <$> maybeToEither "Invalid Key Length" (xpubFromBytes dec)
 
 newtype WithoutChain key = WithoutChain key
 
 instance ToBech32 (WithoutChain (Shelley 'RootK XPub)) where
-    bech32 k = bech32With script_vk $ xpubPublicKey $ coerce k
+    bech32 k = bech32With CIP5.script_vk $ xpubPublicKey $ coerce k
 
 instance ToBech32 (WithoutChain (Shelley 'AccountK XPub)) where
-    bech32 k = bech32With acct_vk $ xpubPublicKey $ coerce k
+    bech32 k = bech32With CIP5.acct_vk $ xpubPublicKey $ coerce k
 
 instance ToBech32 (WithoutChain (Shelley 'PaymentK XPub)) where
-    bech32 k = bech32With addr_vk $ xpubPublicKey $ coerce k
+    bech32 k = bech32With CIP5.addr_vk $ xpubPublicKey $ coerce k
 
 instance ToBech32 (WithoutChain (Shelley 'DelegationK XPub)) where
-    bech32 k = bech32With stake_vk $ xpubPublicKey $ coerce k
+    bech32 k = bech32With CIP5.stake_vk $ xpubPublicKey $ coerce k
 
 instance ToBech32 (WithoutChain (Shelley 'ScriptK XPub)) where
-    bech32 k = bech32With script_vk $ xpubPublicKey $ coerce k
-
--- instance ToBech32 (WithoutChain (Shelley 'DelegationK XPrv)) where
---     bech32 = undefined
--- instance ToBech32 (WithoutChain (Shelley 'PaymentK XPrv)) where
---     bech32 = undefined
--- instance ToBech32 (WithoutChain (Shelley 'ScriptK XPrv)) where
---     bech32 = undefined
+    bech32 k = bech32With CIP5.script_vk $ xpubPublicKey $ coerce k
 
 -- | Describe what the keys within an account are used for.
 --

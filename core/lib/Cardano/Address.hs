@@ -63,8 +63,7 @@ import Numeric.Natural
 
 import Cardano.Codec.Bech32
     ( FromBech32 (..), ToBech32 (..), bech32With, fromBech32With )
-import Cardano.Codec.Bech32.Prefixes
-    ( addr, addr_vkh, stake_vkh )
+import qualified Cardano.Codec.Bech32.Prefixes as CIP5
 import qualified Codec.Binary.Encoding as E
 import qualified Data.ByteString as BS
 import qualified Data.Text.Encoding as T
@@ -78,9 +77,9 @@ newtype Address = Address
     } deriving stock (Generic, Show, Eq, Ord)
 instance NFData Address
 instance ToBech32 Address where
-    bech32 (Address k) = bech32With addr k
+    bech32 (Address k) = bech32With CIP5.addr k
 instance FromBech32 Address where
-    fromBech32 = fromBech32With addr Address
+    fromBech32 = fromBech32With CIP5.addr Address
 
 -- Unsafe constructor for easily lifting bytes inside an 'Address'.
 --
@@ -224,12 +223,12 @@ invariantNetworkTag limit (NetworkTag num)
 
 newtype AddressVerificationKeyHash = AddressVerificationKeyHash { unAddressVerificationKeyHash :: ByteString }
 instance ToBech32 AddressVerificationKeyHash where
-    bech32 (AddressVerificationKeyHash kh) = bech32With addr_vkh kh
+    bech32 (AddressVerificationKeyHash kh) = bech32With CIP5.addr_vkh kh
 instance FromBech32 AddressVerificationKeyHash where
-    fromBech32 = fromBech32With addr_vkh AddressVerificationKeyHash
+    fromBech32 = fromBech32With CIP5.addr_vkh AddressVerificationKeyHash
 
 newtype StakeVerificationKeyHash = StakeVerificationKeyHash { unStakeVerificationKeyHash :: ByteString }
 instance ToBech32 StakeVerificationKeyHash where
-    bech32 (StakeVerificationKeyHash kh) = bech32With stake_vkh kh
+    bech32 (StakeVerificationKeyHash kh) = bech32With CIP5.stake_vkh kh
 instance FromBech32 StakeVerificationKeyHash where
-    fromBech32 = fromBech32With stake_vkh StakeVerificationKeyHash
+    fromBech32 = fromBech32With CIP5.stake_vkh StakeVerificationKeyHash
